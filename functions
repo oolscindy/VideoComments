@@ -11,3 +11,65 @@ def get_title_from_url(url):
     response = urllib.request.urlopen(url).read().decode("utf-8")
     title = re.search(r'partName:"(.*)",', response).group(1).split('：')[0]
     return title
+def get_danmuList(url):
+    cid = url.split('/')[4]
+    vid = url.split('/')[5].strip('.html')
+    contents = []
+    time = 0
+    while True:
+        danmu = json.loads(get_response('https://galaxy.bz.mgtv.com/rdbarrage?vid=' + vid + '&cid=' + cid + '&time=' + str(time)))
+        if danmu['data']['items'] == None:
+            break
+        for j in danmu['data']['items']:
+            illegal = False #label any illegal XML character
+            for char in ['<', '>', '&', '\u0000', '\b']:
+                if char in j['content']:
+                    illegal = True
+                    break
+            if illegal:
+                continue
+            timepoint = j['time']/1000  #overlayed comments time
+            ct = 1                      #overlayed comments stype
+            size = 20                   #verlayed comments size
+            color = 16777215            #verlayed comments color
+            content = j['content']      #verlayed comments content
+            #print(content)
+            contents.append(content)
+            #print('<d p="' + str(timepoint) + ',' + str(ct) +',' + str(size) + ',' + str(color) + '">' + content + '</d>\n')
+
+        time = danmu['data']['next']
+    return(contents)
+
+def count_freq(danmuList, sisters):
+    keys= list(sisters.keys())
+    values2=list(sisters.values())
+    values = [item for i in values2 for item in i]
+    #print(values)
+    count= dict(zip(keys, [0]*len(keys)))
+    #print(count)
+    for t in danmuList:
+        for n in values2:
+            for i in n:
+                if i in t:
+                    name= [k for k,v in sisters.items() if i in v][0]
+                    count[name]=count[name]+1
+                    #print(name,t)
+                    break
+    return count
+    
+def get_values(url_list):
+    url_dict={}
+    url_dict = {key: get_title_from_url(key) for key in url_list}
+    values={}
+    #values={key:None for key in url_dict.values()}
+    for i in url_list:
+        #print(i)
+        contents=get_danmuList(i)
+        print(url_dict[i])
+        values[url_dict[i]]=count_freq(contents,sisters)
+    return values
+    
+ def print_values(values):
+    df=pd.DataFrame(values.values(), columns=sisters.keys(),index=values.keys())
+    df.to_csv("sisters.csv")
+    
