@@ -57,7 +57,7 @@ def count_freq(danmuList, sisters):
                     break
     return count
     
-def get_values(url_list):
+def get_values(url_list):#perfer not to run this because if may crash in the middle and then nothing saved
     url_dict={}
     url_dict = {key: get_title_from_url(key) for key in url_list}
     values={}
