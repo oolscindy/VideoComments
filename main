@@ -1,0 +1,11 @@
+if __name__=='__main__':
+  url_dict={}
+  url_dict = {key: get_title_from_url(key) for key in url_list} 
+  print(url_dict.values())
+  for i in url_list:
+    print(i)
+    contents=get_danmuList(i)
+    print(url_dict[i])
+    values[url_dict[i]]=count_freq(contents,sisters)
+  print_values(values)
+
